@@ -27,6 +27,7 @@ kind: Service
 metadata:
   name: cast-service
 spec:
+  type: NodePort 
   selector:
     app: cast-service
   ports:

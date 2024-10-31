@@ -20,7 +20,7 @@ spec:
         - name: DATABASE_URI
           value: "postgresql://movie_db_username:movie_db_password@movie-db/movie_db_dev"
         - name: CAST_SERVICE_HOST_URL
-          value: "http://cast-service:3000/api/v1/casts/"
+          value: "http://192.168.1.4:32000/api/v1/casts/"
         ports:
         - containerPort: 3000
 ---
@@ -29,6 +29,7 @@ kind: Service
 metadata:
   name: movie-service
 spec:
+  type: NodePort
   selector:
     app: movie-service
   ports:
