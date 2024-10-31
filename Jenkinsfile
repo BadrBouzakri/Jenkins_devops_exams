@@ -88,8 +88,8 @@ pipeline {
                     sh '''
                     sleep 10 # Attendre que les services soient opérationnels
                     # Test des endpoints pour vérifier que les services répondent
-                    curl -f http://192.168.1.4:31000/ || exit 1
-                    curl -f http://192.168.1.4:32000/ || exit 1
+                    curl -f http://192.168.1.4:31000/api/v1/movies || exit 1
+                    curl -f http://192.168.1.4:32000/api/v1/casts || exit 1
                     '''
                 }
             }
