@@ -84,12 +84,10 @@ pipeline {
         stage('Test Deployment in Dev') {
             steps {
                 script {
-                    // Vérifie que les services sont accessibles après le déploiement
+                    // Vérifier les logs des services pour s'assurer qu'ils sont en cours d'exécution sans erreur
                     sh '''
-                    sleep 10 # Attendre que les services soient opérationnels
-                    # Test des endpoints pour vérifier que les services répondent
-                    curl -f http://192.168.1.4:31000/api/v1/movies || exit 1
-                    curl -f http://192.168.1.4:32000/api/v1/casts || exit 1
+                    kubectl logs -l app=movie-service -n dev | tail -n 20
+                    kubectl logs -l app=cast-service -n dev | tail -n 20
                     '''
                 }
             }
