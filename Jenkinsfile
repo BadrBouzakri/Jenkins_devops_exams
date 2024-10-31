@@ -9,7 +9,7 @@ pipeline {
     agent any
     
     stages {
-        // Etape de build et push pour movie-service
+        // Étape de build et push pour movie-service
         stage('Build and Push Movie Service') {
             steps {
                 dir('movie-service') { // Navigue dans le répertoire movie-service
@@ -31,7 +31,7 @@ pipeline {
             }
         }
 
-        // Etape de build et push pour cast-service
+        // Étape de build et push pour cast-service
         stage('Build and Push Cast Service') {
             steps {
                 dir('cast-service') { // Navigue dans le répertoire cast-service
@@ -53,7 +53,7 @@ pipeline {
             }
         }
 
-        // Déploiement dans le namespace dev
+        // Déploiement dans le namespace dev avec mise à jour des images
         stage('Deploy to Dev') {
             environment {
                 KUBECONFIG = credentials("config") // Récupère kubeconfig pour accéder au cluster
@@ -65,6 +65,10 @@ pipeline {
                     rm -Rf .kube
                     mkdir .kube
                     echo "$KUBECONFIG" > .kube/config
+
+                    # Mise à jour des fichiers YAML pour utiliser les nouveaux tags
+                    sed -i "s+image:.*+image: $DOCKER_ID/$MOVIE_IMAGE:$MOVIE_TAG+g" kube/movie-service.yaml
+                    sed -i "s+image:.*+image: $DOCKER_ID/$CAST_IMAGE:$CAST_TAG+g" kube/cast-service.yaml
                     
                     # Déploiement dans le namespace dev
                     kubectl apply -f kube/cast-db.yaml -n dev
@@ -84,14 +88,14 @@ pipeline {
                     sh '''
                     sleep 10 # Attendre que les services soient opérationnels
                     # Test des endpoints pour vérifier que les services répondent
-                    curl -f http://192.168.1.4:3000/ || exit 1
-                    curl -f http://192.168.1.4:4000/ || exit 1
+                    curl -f http://movie-service.dev.svc.cluster.local:3000/ || exit 1
+                    curl -f http://cast-service.dev.svc.cluster.local:4000/ || exit 1
                     '''
                 }
             }
         }
 
-        // Déploiement dans le namespace QA
+        // Déploiement dans le namespace QA avec mise à jour des images
         stage('Deploy to QA') {
             environment {
                 KUBECONFIG = credentials("config")
@@ -103,7 +107,12 @@ pipeline {
                     rm -Rf .kube
                     mkdir .kube
                     echo "$KUBECONFIG" > .kube/config
+
+                    # Mise à jour des fichiers YAML pour utiliser les nouveaux tags
+                    sed -i "s+image:.*+image: $DOCKER_ID/$MOVIE_IMAGE:$MOVIE_TAG+g" kube/movie-service.yaml
+                    sed -i "s+image:.*+image: $DOCKER_ID/$CAST_IMAGE:$CAST_TAG+g" kube/cast-service.yaml
                     
+                    # Déploiement dans le namespace QA
                     kubectl apply -f kube/cast-db.yaml -n qa
                     kubectl apply -f kube/movie-db.yaml -n qa
                     kubectl apply -f kube/cast-service.yaml -n qa
@@ -113,7 +122,7 @@ pipeline {
             }
         }
 
-        // Déploiement dans le namespace staging
+        // Déploiement dans le namespace staging avec mise à jour des images
         stage('Deploy to Staging') {
             environment {
                 KUBECONFIG = credentials("config")
@@ -125,7 +134,12 @@ pipeline {
                     rm -Rf .kube
                     mkdir .kube
                     echo "$KUBECONFIG" > .kube/config
+
+                    # Mise à jour des fichiers YAML pour utiliser les nouveaux tags
+                    sed -i "s+image:.*+image: $DOCKER_ID/$MOVIE_IMAGE:$MOVIE_TAG+g" kube/movie-service.yaml
+                    sed -i "s+image:.*+image: $DOCKER_ID/$CAST_IMAGE:$CAST_TAG+g" kube/cast-service.yaml
                     
+                    # Déploiement dans le namespace staging
                     kubectl apply -f kube/cast-db.yaml -n staging
                     kubectl apply -f kube/movie-db.yaml -n staging
                     kubectl apply -f kube/cast-service.yaml -n staging
@@ -135,7 +149,7 @@ pipeline {
             }
         }
 
-        // Déploiement en production avec validation manuelle
+        // Déploiement en production avec validation manuelle et mise à jour des images
         stage('Deploy to Production') {
             environment {
                 KUBECONFIG = credentials("config")
@@ -155,7 +169,12 @@ pipeline {
                         rm -Rf .kube
                         mkdir .kube
                         echo "$KUBECONFIG" > .kube/config
+
+                        # Mise à jour des fichiers YAML pour utiliser les nouveaux tags
+                        sed -i "s+image:.*+image: $DOCKER_ID/$MOVIE_IMAGE:$MOVIE_TAG+g" kube/movie-service.yaml
+                        sed -i "s+image:.*+image: $DOCKER_ID/$CAST_IMAGE:$CAST_TAG+g" kube/cast-service.yaml
                         
+                        # Déploiement dans le namespace prod
                         kubectl apply -f kube/cast-db.yaml -n prod
                         kubectl apply -f kube/movie-db.yaml -n prod
                         kubectl apply -f kube/cast-service.yaml -n prod
